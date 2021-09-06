@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "start": "sudo apt install ffmpeg && node index.js"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
