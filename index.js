@@ -22,6 +22,7 @@ bot.on("message", msg => {
   try {
     if (msg.text !== "/start") {
       url = new URL(msg.text);
+      if (!msg.text.startsWith("https://youtu.be")) throw new Error();
 
       bot.sendMessage(chatId, "Getting video Info...");
       getVideoDetails(msg.text).then(data => {
@@ -48,7 +49,7 @@ bot.on("message", msg => {
       });
     }
   } catch {
-    bot.sendMessage(chatId, "Please enter a valid url");
+    bot.sendMessage(chatId, "Please enter a valid youtube url");
   }
 });
 
