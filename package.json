@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "apt install ffmpeg && node index.js"
+    "start": "sudo apt install ffmpeg && node index.js"
   },
   "keywords": [],
   "author": "",
