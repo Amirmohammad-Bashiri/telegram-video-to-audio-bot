@@ -17,6 +17,7 @@ if (!fs.existsSync(dir)) {
 }
 
 // Bot shit
+let isWorking = false;
 const token = process.env.BOT_TOKEN;
 
 bot = new TelegramBot(token, {
@@ -36,6 +37,11 @@ bot.on("message", msg => {
       url = new URL(msg.text);
       console.log(chatId);
       if (!isValidUrl(msg.text)) throw new Error();
+      if (isWorking) {
+        bot.sendMessage(chatId, "Please wait for the process to finish.");
+        return;
+      }
+      isWorking = true;
 
       bot.sendMessage(chatId, "Getting video Info...");
       getVideoDetails(msg.text, chatId).then(data => {
@@ -51,6 +57,12 @@ bot.on("message", msg => {
           `${removeSpecialChars(data.filename)}.mp4`
         );
 
+        const thumbFilePath = path.join(
+          process.cwd(),
+          "downloads",
+          `${removeSpecialChars(data.filename)}.jpg`
+        );
+
         convertVideoToMp3(data.url, data.filename, chatId, bot)
           .then(() => {
             console.log("Uploading...");
@@ -61,6 +73,7 @@ bot.on("message", msg => {
                 mp3Filepath,
                 {
                   caption: `${data.caption}\n\n ID: @yt_video_to_audio_bot`,
+                  thumb: thumbFilePath,
                 },
                 fileOptions
               )
@@ -77,6 +90,8 @@ bot.on("message", msg => {
               .finally(() => {
                 fs.unlinkSync(mp3Filepath);
                 fs.unlinkSync(mp4Filepath);
+                fs.unlinkSync(thumbFilePath);
+                isWorking = false;
               });
           })
           .catch(err => console.log(err));
