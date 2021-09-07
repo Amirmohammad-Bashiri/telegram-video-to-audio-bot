@@ -72,7 +72,6 @@ bot.on("message", msg => {
                 chatId,
                 mp3Filepath,
                 {
-                  caption: `${data.caption}\n\n ID: @yt_video_to_audio_bot`,
                   thumb: thumbFilePath,
                 },
                 fileOptions
