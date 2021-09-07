@@ -1,23 +1,27 @@
 const path = require("path");
 const fs = require("fs");
-const ffmpeg = require("fluent-ffmpeg");
-const ytdl = require("ytdl-core");
 const TelegramBot = require("node-telegram-bot-api");
 const dotenv = require("dotenv");
 
+const removeSpecialChars = require("./utils/removeSpecialChars");
+const convertVideoToMp3 = require("./convertVideoToMp3");
+const getVideoDetails = require("./getVideoDetails");
+
 dotenv.config({ path: "./config.env" });
+
+const dir = "./downloads";
+
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir);
+}
 
 // Bot shit
 const token = process.env.BOT_TOKEN;
 
-const bot = new TelegramBot(token, {
+bot = new TelegramBot(token, {
   polling: true,
   baseApiUrl: "http://localhost:8081",
 });
-
-function removeSpecialChars(filename) {
-  return filename.replace(/[^a-zA-Z0-9]/g, " ");
-}
 
 bot.on("message", msg => {
   const chatId = msg.chat.id;
@@ -46,7 +50,7 @@ bot.on("message", msg => {
           `${removeSpecialChars(data.filename)}.mp4`
         );
 
-        convertVideoToMp3(data.url, data.filename, chatId)
+        convertVideoToMp3(data.url, data.filename, chatId, bot)
           .then(() => {
             console.log("Uploading...");
             bot.sendMessage(chatId, "Uploading...");
@@ -74,41 +78,3 @@ bot.on("message", msg => {
     bot.sendMessage(chatId, "Please enter a valid youtube url");
   }
 });
-
-// Video to mp3 conversion
-const dir = "./downloads";
-
-if (!fs.existsSync(dir)) {
-  fs.mkdirSync(dir);
-}
-
-function convertVideoToMp3(url, filename, chatId) {
-  return new Promise((resolve, reject) => {
-    const trimedFilename = removeSpecialChars(filename);
-    console.log("Downloading video...");
-    bot.sendMessage(chatId, "Downloading video...");
-    ytdl(url, { quality: "highestaudio" })
-      .pipe(fs.createWriteStream(`./downloads/${trimedFilename}.mp4`))
-      .on("close", () => {
-        console.log("Converting to mp3...");
-        bot.sendMessage(chatId, "Converting to mp3...");
-        new ffmpeg({ source: `./downloads/${trimedFilename}.mp4`, nolog: true })
-          .toFormat("mp3")
-          .on("end", () => resolve())
-          .on("error", err => reject(err))
-          .saveToFile(`./downloads/${trimedFilename}.mp3`);
-      });
-  }).catch(err => console.log(err));
-}
-
-function getVideoDetails(url, chatId) {
-  console.log("Getting video info...");
-  return new Promise((resolve, reject) => {
-    ytdl
-      .getBasicInfo(url)
-      .then(data =>
-        resolve({ url, filename: `${data.videoDetails.title}_${chatId}` })
-      )
-      .catch(err => reject(err));
-  });
-}
