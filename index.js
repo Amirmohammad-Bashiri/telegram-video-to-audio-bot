@@ -15,6 +15,10 @@ const bot = new TelegramBot(token, {
   baseApiUrl: "http://localhost:8081",
 });
 
+function removeSlash(filename) {
+  return filename.replace(/\\|\//g, "").replace(/\s+/g, "-");
+}
+
 bot.on("message", msg => {
   const chatId = msg.chat.id;
   let url;
@@ -33,8 +37,10 @@ bot.on("message", msg => {
         const mp3Filepath = path.join(
           process.cwd(),
           "downloads",
-          `${data.filename}.mp3`
+          `${removeSlash(data.filename)}.mp3`
         );
+
+        // console.log(mp3Filepath);
 
         const mp4Filepath = path.join(
           process.cwd(),
@@ -44,6 +50,9 @@ bot.on("message", msg => {
 
         convertVideoToMp3(data.url, data.filename, chatId)
           .then(() => {
+            console.log(data.filename);
+            console.log(mp3Filepath);
+            console.log("Uploading...");
             bot.sendMessage(chatId, "Uploading...");
             bot
               .sendAudio(chatId, mp3Filepath, {}, fileOptions)
@@ -58,8 +67,8 @@ bot.on("message", msg => {
                 console.log(err);
               })
               .finally(() => {
-                fs.unlinkSync(mp3Filepath);
-                fs.unlinkSync(mp4Filepath);
+                // fs.unlinkSync(removeSmp3Filepath);
+                // fs.unlinkSync(mp4Filepath);
               });
           })
           .catch(err => console.log(err));
@@ -79,20 +88,21 @@ if (!fs.existsSync(dir)) {
 
 function convertVideoToMp3(url, filename, chatId) {
   return new Promise((resolve, reject) => {
+    const trimedFilename = removeSlash(filename);
     console.log("Downloading video...");
     bot.sendMessage(chatId, "Downloading video...");
     ytdl(url, { quality: "highestaudio" })
-      .pipe(fs.createWriteStream(`./downloads/${filename}.mp4`))
+      .pipe(fs.createWriteStream(`./downloads/${trimedFilename}.mp4`))
       .on("close", () => {
         console.log("Converting to mp3...");
         bot.sendMessage(chatId, "Converting to mp3...");
-        new ffmpeg({ source: `./downloads/${filename}.mp4`, nolog: true })
+        new ffmpeg({ source: `./downloads/${trimedFilename}.mp4`, nolog: true })
           .toFormat("mp3")
           .on("end", () => resolve())
           .on("error", err => reject(err))
-          .saveToFile(`./downloads/${filename}.mp3`);
+          .saveToFile(`./downloads/${trimedFilename}.mp3`);
       });
-  });
+  }).catch(err => console.log(err));
 }
 
 function getVideoDetails(url, chatId) {
