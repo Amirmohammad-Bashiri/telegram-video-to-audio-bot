@@ -3,6 +3,7 @@ const fs = require("fs");
 const TelegramBot = require("node-telegram-bot-api");
 const dotenv = require("dotenv");
 
+const isValidUrl = require("./utils/isValidUrl");
 const removeSpecialChars = require("./utils/removeSpecialChars");
 const convertVideoToMp3 = require("./convertVideoToMp3");
 const getVideoDetails = require("./getVideoDetails");
@@ -34,7 +35,7 @@ bot.on("message", msg => {
     if (msg.text !== "/start") {
       url = new URL(msg.text);
       console.log(chatId);
-      if (!msg.text.startsWith("https://youtu.be")) throw new Error();
+      if (!isValidUrl(msg.text)) throw new Error();
 
       bot.sendMessage(chatId, "Getting video Info...");
       getVideoDetails(msg.text, chatId).then(data => {
