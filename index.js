@@ -15,8 +15,8 @@ const bot = new TelegramBot(token, {
   baseApiUrl: "http://localhost:8081",
 });
 
-function removeSlash(filename) {
-  return filename.replace(/\\|\//g, "").replace(/\s+/g, "-");
+function removeSpecialChars(filename) {
+  return filename.replace(/[^a-zA-Z0-9]/g, " ");
 }
 
 bot.on("message", msg => {
@@ -37,13 +37,13 @@ bot.on("message", msg => {
         const mp3Filepath = path.join(
           process.cwd(),
           "downloads",
-          `${removeSlash(data.filename)}.mp3`
+          `${removeSpecialChars(data.filename)}.mp3`
         );
 
         const mp4Filepath = path.join(
           process.cwd(),
           "downloads",
-          `${removeSlash(data.filename)}.mp4`
+          `${removeSpecialChars(data.filename)}.mp4`
         );
 
         convertVideoToMp3(data.url, data.filename, chatId)
@@ -84,7 +84,7 @@ if (!fs.existsSync(dir)) {
 
 function convertVideoToMp3(url, filename, chatId) {
   return new Promise((resolve, reject) => {
-    const trimedFilename = removeSlash(filename);
+    const trimedFilename = removeSpecialChars(filename);
     console.log("Downloading video...");
     bot.sendMessage(chatId, "Downloading video...");
     ytdl(url, { quality: "highestaudio" })
