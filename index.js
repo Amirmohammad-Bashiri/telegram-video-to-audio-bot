@@ -40,18 +40,14 @@ bot.on("message", msg => {
           `${removeSlash(data.filename)}.mp3`
         );
 
-        // console.log(mp3Filepath);
-
         const mp4Filepath = path.join(
           process.cwd(),
           "downloads",
-          `${data.filename}.mp4`
+          `${removeSlash(data.filename)}.mp4`
         );
 
         convertVideoToMp3(data.url, data.filename, chatId)
           .then(() => {
-            console.log(data.filename);
-            console.log(mp3Filepath);
             console.log("Uploading...");
             bot.sendMessage(chatId, "Uploading...");
             bot
@@ -67,8 +63,8 @@ bot.on("message", msg => {
                 console.log(err);
               })
               .finally(() => {
-                // fs.unlinkSync(removeSmp3Filepath);
-                // fs.unlinkSync(mp4Filepath);
+                fs.unlinkSync(mp3Filepath);
+                fs.unlinkSync(mp4Filepath);
               });
           })
           .catch(err => console.log(err));
