@@ -56,7 +56,14 @@ bot.on("message", msg => {
             console.log("Uploading...");
             bot.sendMessage(chatId, "Uploading...");
             bot
-              .sendAudio(chatId, mp3Filepath, {}, fileOptions)
+              .sendAudio(
+                chatId,
+                mp3Filepath,
+                {
+                  caption: `${data.caption}\n\n ID: @yt_video_to_audio_bot`,
+                },
+                fileOptions
+              )
               .then(() => {
                 console.log("Uploaded");
               })

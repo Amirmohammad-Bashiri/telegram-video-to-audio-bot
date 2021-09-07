@@ -6,7 +6,12 @@ function getVideoDetails(url, chatId) {
     ytdl
       .getBasicInfo(url)
       .then(data =>
-        resolve({ url, filename: `${data.videoDetails.title}_${chatId}` })
+        // console.log(data)
+        resolve({
+          url,
+          filename: `${data.videoDetails.title}_${chatId}`,
+          caption: data.videoDetails.title,
+        })
       )
       .catch(err => reject(err));
   });
