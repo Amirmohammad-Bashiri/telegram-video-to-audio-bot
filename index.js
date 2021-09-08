@@ -8,6 +8,7 @@ const getVideoDetails = require("./getVideoDetails");
 const convertVideoToAudio = require("./convertVideoToAudio");
 const removeSpecialChars = require("./utils/removeSpecialChars");
 const isValidUrl = require("./utils/isValidUrl");
+const checkFileSize = require("./utils/checkFileSize");
 // Global constants
 dotenv.config({ path: "./config.env" });
 
@@ -53,10 +54,14 @@ bot.on("message", msg => {
           `${removeSpecialChars(data.filename)}.jpg`
         );
 
-        console.log(thumbFilePath);
-
         convertVideoToAudio(data.url, filePath, chatId, bot)
           .then(() => {
+            if (!checkFileSize(filePath)) {
+              bot.sendMessage(chatId, "File is too large.");
+              fs.unlinkSync(filePath);
+              fs.unlinkSync(thumbFilePath);
+              return;
+            }
             console.log("Uploading...");
             bot.sendMessage(chatId, "Uploading...");
             bot
@@ -96,3 +101,4 @@ bot.on("message", msg => {
     console.log(err);
   }
 });
+
