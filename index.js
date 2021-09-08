@@ -41,7 +41,7 @@ bot.on("message", msg => {
 
       bot.sendMessage(chatId, "Getting video info...");
 
-      getVideoDetails(msg.text, chatId).then(data => {
+      getVideoDetails(msg.text, chatId, bot).then(data => {
         const filePath = path.join(
           process.cwd(),
           "downloads",
@@ -101,4 +101,3 @@ bot.on("message", msg => {
     console.log(err);
   }
 });
-

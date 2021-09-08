@@ -6,12 +6,20 @@ const ytdl = require("ytdl-core");
 const getThumbnail = require("./utils/getThumbnail");
 const removeSpecialChars = require("./utils/removeSpecialChars");
 
-function getVideoDetails(url, chatId) {
+function getVideoDetails(url, chatId, bot) {
   console.log("Getting video info...");
   return new Promise((resolve, reject) => {
     ytdl
-      .getBasicInfo(url)
+      .getInfo(url)
       .then(data => {
+        if (data.videoDetails.isLiveContent) {
+          bot.sendMessage(
+            chatId,
+            "This video is currently live, Please wait for it to finish first."
+          );
+          return;
+        }
+
         const filename = `${data.videoDetails.title}_${chatId}`;
         const caption = data.videoDetails.title;
         const thumbnails = data.videoDetails.thumbnails;
