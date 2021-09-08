@@ -64,7 +64,7 @@ bot.on("message", msg => {
                 chatId,
                 filePath,
                 {
-                  caption: "\nID: @uTubeVideoDownloadBot",
+                  caption: "\nID: @youtube_video_to_audio_bot",
                   thumb: thumbFilePath,
                 },
                 fileOptions
