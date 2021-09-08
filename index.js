@@ -1,15 +1,17 @@
 const path = require("path");
 const fs = require("fs");
-const TelegramBot = require("node-telegram-bot-api");
+// External modules
 const dotenv = require("dotenv");
+const TelegramBot = require("node-telegram-bot-api");
 
-const isValidUrl = require("./utils/isValidUrl");
-const removeSpecialChars = require("./utils/removeSpecialChars");
-const convertVideoToMp3 = require("./convertVideoToMp3");
 const getVideoDetails = require("./getVideoDetails");
-
+const convertVideoToAudio = require("./convertVideoToAudio");
+const removeSpecialChars = require("./utils/removeSpecialChars");
+const isValidUrl = require("./utils/isValidUrl");
+// Global constants
 dotenv.config({ path: "./config.env" });
 
+// Create the download folder
 const dir = "./downloads";
 
 if (!fs.existsSync(dir)) {
@@ -17,12 +19,10 @@ if (!fs.existsSync(dir)) {
 }
 
 // Bot shit
-let isWorking = false;
 const token = process.env.BOT_TOKEN;
 
-bot = new TelegramBot(token, {
+const bot = new TelegramBot(token, {
   polling: true,
-  baseApiUrl: "http://localhost:8081",
 });
 
 bot.on("message", msg => {
@@ -37,24 +37,14 @@ bot.on("message", msg => {
       url = new URL(msg.text);
       console.log(chatId);
       if (!isValidUrl(msg.text)) throw new Error();
-      if (isWorking) {
-        bot.sendMessage(chatId, "Please wait for the process to finish.");
-        return;
-      }
-      isWorking = true;
 
-      bot.sendMessage(chatId, "Getting video Info...");
+      bot.sendMessage(chatId, "Getting video info...");
+
       getVideoDetails(msg.text, chatId).then(data => {
-        const mp3Filepath = path.join(
+        const filePath = path.join(
           process.cwd(),
           "downloads",
           `${removeSpecialChars(data.filename)}.mp3`
-        );
-
-        const mp4Filepath = path.join(
-          process.cwd(),
-          "downloads",
-          `${removeSpecialChars(data.filename)}.mp4`
         );
 
         const thumbFilePath = path.join(
@@ -63,22 +53,23 @@ bot.on("message", msg => {
           `${removeSpecialChars(data.filename)}.jpg`
         );
 
-        convertVideoToMp3(data.url, data.filename, chatId, bot)
+        console.log(thumbFilePath);
+
+        convertVideoToAudio(data.url, filePath, chatId, bot)
           .then(() => {
             console.log("Uploading...");
             bot.sendMessage(chatId, "Uploading...");
             bot
               .sendAudio(
                 chatId,
-                mp3Filepath,
+                filePath,
                 {
+                  caption: "\nID: @uTubeVideoDownloadBot",
                   thumb: thumbFilePath,
                 },
                 fileOptions
               )
-              .then(() => {
-                console.log("Uploaded");
-              })
+              .then(() => console.log("Uploaded"))
               .catch(err => {
                 bot.sendMessage(
                   chatId,
@@ -87,16 +78,21 @@ bot.on("message", msg => {
                 console.log(err);
               })
               .finally(() => {
-                fs.unlinkSync(mp3Filepath);
-                fs.unlinkSync(mp4Filepath);
+                fs.unlinkSync(filePath);
                 fs.unlinkSync(thumbFilePath);
-                isWorking = false;
               });
           })
-          .catch(err => console.log(err));
+          .catch(err => {
+            console.log(err);
+            bot.sendMessage(
+              chatId,
+              "We are having an issue with uploading the video, Please try again later."
+            );
+          });
       });
     }
-  } catch {
+  } catch (err) {
     bot.sendMessage(chatId, "Please enter a valid youtube url");
+    console.log(err);
   }
 });

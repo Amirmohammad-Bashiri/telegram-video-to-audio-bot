@@ -1,4 +1,6 @@
 const path = require("path");
+
+// External modules
 const ytdl = require("ytdl-core");
 
 const getThumbnail = require("./utils/getThumbnail");
@@ -11,6 +13,7 @@ function getVideoDetails(url, chatId) {
       .getBasicInfo(url)
       .then(data => {
         const filename = `${data.videoDetails.title}_${chatId}`;
+        const caption = data.videoDetails.title;
         const thumbnails = data.videoDetails.thumbnails;
         const thumbUrl = thumbnails[thumbnails.length - 1];
         const thumbFilePath = path.join(
@@ -20,10 +23,11 @@ function getVideoDetails(url, chatId) {
         );
 
         getThumbnail(thumbUrl, thumbFilePath);
+
         resolve({
           url,
           filename,
-          caption: data.videoDetails.title,
+          caption,
         });
       })
       .catch(err => reject(err));
