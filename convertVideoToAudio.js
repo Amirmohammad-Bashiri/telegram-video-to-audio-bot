@@ -9,7 +9,7 @@ function convertVideoToAudio(url, filename, chatId, bot) {
     bot.sendMessage(chatId, "Downloading video...");
 
     // Get audio and video streams
-    const audio = ytdl(url, { quality: "137" });
+    const audio = ytdl(url, { quality: "highestaudio" });
 
     // Start the ffmpeg child process
     const ffmpegProcess = cp.spawn(
