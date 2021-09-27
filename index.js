@@ -9,6 +9,7 @@ const convertVideoToAudio = require("./convertVideoToAudio");
 const removeSpecialChars = require("./utils/removeSpecialChars");
 const isValidUrl = require("./utils/isValidUrl");
 const checkFileSize = require("./utils/checkFileSize");
+const userDetailsLogger = require("./utils/userDetailsLogger");
 // Global constants
 dotenv.config({ path: "./config.env" });
 
@@ -35,66 +36,74 @@ bot.on("message", msg => {
 
   try {
     if (msg.text !== "/start") {
+      userDetailsLogger(bot, chatId);
       url = new URL(msg.text);
-      console.log(chatId);
       if (!isValidUrl(msg.text)) throw new Error();
 
       bot.sendMessage(chatId, "Getting video info...");
 
-      getVideoDetails(msg.text, chatId, bot).then(data => {
-        const filePath = path.join(
-          process.cwd(),
-          "downloads",
-          `${removeSpecialChars(data.filename)}.mp3`
-        );
+      getVideoDetails(msg.text, chatId, bot)
+        .then(data => {
+          const filePath = path.join(
+            process.cwd(),
+            "downloads",
+            `${removeSpecialChars(data.filename)}.mp3`
+          );
 
-        const thumbFilePath = path.join(
-          process.cwd(),
-          "downloads",
-          `${removeSpecialChars(data.filename)}.jpg`
-        );
+          const thumbFilePath = path.join(
+            process.cwd(),
+            "downloads",
+            `${removeSpecialChars(data.filename)}.jpg`
+          );
 
-        convertVideoToAudio(data.url, filePath, chatId, bot)
-          .then(() => {
-            if (!checkFileSize(filePath)) {
-              bot.sendMessage(chatId, "File is too large.");
-              fs.unlinkSync(filePath);
-              fs.unlinkSync(thumbFilePath);
-              return;
-            }
-            console.log("Uploading...");
-            bot.sendMessage(chatId, "Uploading...");
-            bot
-              .sendAudio(
-                chatId,
-                filePath,
-                {
-                  caption: "\nID: @yt_video_to_audio_bot",
-                  thumb: thumbFilePath,
-                },
-                fileOptions
-              )
-              .then(() => console.log("Uploaded"))
-              .catch(err => {
-                bot.sendMessage(
-                  chatId,
-                  "There was an error, Please try again later."
-                );
-                console.log(err);
-              })
-              .finally(() => {
+          convertVideoToAudio(data.url, filePath, chatId, bot)
+            .then(() => {
+              if (!checkFileSize(filePath)) {
+                bot.sendMessage(chatId, "File is too large.");
                 fs.unlinkSync(filePath);
                 fs.unlinkSync(thumbFilePath);
-              });
-          })
-          .catch(err => {
-            console.log(err);
-            bot.sendMessage(
-              chatId,
-              "We are having an issue with uploading the video, Please try again later."
-            );
-          });
-      });
+                return;
+              }
+              console.log("Uploading...");
+              bot.sendMessage(chatId, "Uploading...");
+              bot
+                .sendAudio(
+                  chatId,
+                  filePath,
+                  {
+                    caption: "\nID: @yt_video_to_audio_bot",
+                    thumb: thumbFilePath,
+                  },
+                  fileOptions
+                )
+                .then(() => console.log("Uploaded"))
+                .catch(err => {
+                  bot.sendMessage(
+                    chatId,
+                    "There was an error, Please try again later."
+                  );
+                  console.log(err);
+                })
+                .finally(() => {
+                  fs.unlinkSync(filePath);
+                  fs.unlinkSync(thumbFilePath);
+                });
+            })
+            .catch(err => {
+              console.log(err);
+              bot.sendMessage(
+                chatId,
+                "We are having an issue with uploading the video, Please try again later."
+              );
+            });
+        })
+        .catch(err => {
+          console.log(err);
+          bot.sendMessage(
+            chatId,
+            "Failed to get video info, Please try again later."
+          );
+        });
     }
   } catch (err) {
     bot.sendMessage(chatId, "Please enter a valid youtube url");
