@@ -71,7 +71,8 @@ bot.on("message", msg => {
                   chatId,
                   filePath,
                   {
-                    caption: "\nID: @yt_video_to_audio_bot",
+                    caption:
+                      "\nID: @yt_video_to_audio_bot\nSoundcloud Downloader:\n@soundcloud_download_bot",
                     thumb: thumbFilePath,
                   },
                   fileOptions
