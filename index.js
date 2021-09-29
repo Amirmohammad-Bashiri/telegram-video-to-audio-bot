@@ -4,6 +4,7 @@ const fs = require("fs");
 const dotenv = require("dotenv");
 const TelegramBot = require("node-telegram-bot-api");
 
+const runDB = require("./db");
 const getVideoDetails = require("./getVideoDetails");
 const convertVideoToAudio = require("./convertVideoToAudio");
 const removeSpecialChars = require("./utils/removeSpecialChars");
@@ -29,6 +30,10 @@ const bot = new TelegramBot(token, {
 
 bot.on("message", msg => {
   const chatId = msg.chat.id;
+
+  // Init DB
+  runDB(chatId);
+
   let url;
   const fileOptions = {
     contentType: "audio/mpeg",
@@ -71,8 +76,7 @@ bot.on("message", msg => {
                   chatId,
                   filePath,
                   {
-                    caption:
-                      "\nID: @yt_video_to_audio_bot\nSoundcloud Downloader:\n@soundcloud_download_bot",
+                    caption: "\nID: @yt_video_to_audio_bot",
                     thumb: thumbFilePath,
                   },
                   fileOptions
