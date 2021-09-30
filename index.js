@@ -67,13 +67,6 @@ bot.on("message", msg => {
 
           convertVideoToAudio(data.url, cleanedFilename, chatId, bot)
             .then(() => {
-              if (!checkFileSize(mp3FilePath)) {
-                bot.sendMessage(chatId, "File is too large.");
-                fs.unlinkSync(mp3FilePath);
-                fs.unlinkSync(mp4FilePath);
-                fs.unlinkSync(thumbFilePath);
-                return;
-              }
               console.log("Uploading...");
               bot.sendMessage(chatId, "Uploading...");
               bot
