@@ -30,10 +30,7 @@ const bot = new TelegramBot(token, {
 
 bot.on("message", msg => {
   const chatId = msg.chat.id;
-
-  // Init DB
   runDB(chatId);
-
   let url;
   const fileOptions = {
     contentType: "audio/mpeg",
@@ -49,23 +46,31 @@ bot.on("message", msg => {
 
       getVideoDetails(msg.text, chatId, bot)
         .then(data => {
-          const filePath = path.join(
+          const cleanedFilename = removeSpecialChars(data.filename);
+          const mp3FilePath = path.join(
             process.cwd(),
             "downloads",
-            `${removeSpecialChars(data.filename)}.mp3`
+            `${cleanedFilename}.mp3`
+          );
+
+          const mp4FilePath = path.join(
+            process.cwd(),
+            "downloads",
+            `${cleanedFilename}.mp4`
           );
 
           const thumbFilePath = path.join(
             process.cwd(),
             "downloads",
-            `${removeSpecialChars(data.filename)}.jpg`
+            `${cleanedFilename}.jpg`
           );
 
-          convertVideoToAudio(data.url, filePath, chatId, bot)
+          convertVideoToAudio(data.url, cleanedFilename, chatId, bot)
             .then(() => {
-              if (!checkFileSize(filePath)) {
+              if (!checkFileSize(mp3FilePath)) {
                 bot.sendMessage(chatId, "File is too large.");
-                fs.unlinkSync(filePath);
+                fs.unlinkSync(mp3FilePath);
+                fs.unlinkSync(mp4FilePath);
                 fs.unlinkSync(thumbFilePath);
                 return;
               }
@@ -74,10 +79,9 @@ bot.on("message", msg => {
               bot
                 .sendAudio(
                   chatId,
-                  filePath,
+                  mp3FilePath,
                   {
-                    caption:
-                      "\nID: @yt_video_to_audio_bot\nSoundcloud Downloader:\n@soundcloud_download_bot",
+                    caption: "\nID: @yt_video_to_audio_bot",
                     thumb: thumbFilePath,
                   },
                   fileOptions
@@ -91,7 +95,8 @@ bot.on("message", msg => {
                   console.log(err);
                 })
                 .finally(() => {
-                  fs.unlinkSync(filePath);
+                  fs.unlinkSync(mp3FilePath);
+                  fs.unlinkSync(mp4FilePath);
                   fs.unlinkSync(thumbFilePath);
                 });
             })
