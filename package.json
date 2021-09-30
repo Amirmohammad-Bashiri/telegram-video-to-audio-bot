@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^10.0.0",
-    "ffmpeg-static": "^4.4.0",
+    "fluent-ffmpeg": "^2.1.2",
     "mongodb": "^4.1.2",
     "node-telegram-bot-api": "^0.54.0",
     "request": "^2.88.2",

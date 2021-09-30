@@ -9,7 +9,6 @@ const getVideoDetails = require("./getVideoDetails");
 const convertVideoToAudio = require("./convertVideoToAudio");
 const removeSpecialChars = require("./utils/removeSpecialChars");
 const isValidUrl = require("./utils/isValidUrl");
-const checkFileSize = require("./utils/checkFileSize");
 const userDetailsLogger = require("./utils/userDetailsLogger");
 // Global constants
 dotenv.config({ path: "./config.env" });
@@ -26,6 +25,7 @@ const token = process.env.BOT_TOKEN;
 
 const bot = new TelegramBot(token, {
   polling: true,
+  baseApiUrl: "http://localhost:5000",
 });
 
 bot.on("message", msg => {
