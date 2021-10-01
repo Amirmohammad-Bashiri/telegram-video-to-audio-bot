@@ -26,6 +26,7 @@ const token = process.env.BOT_TOKEN;
 
 const bot = new TelegramBot(token, {
   polling: true,
+  baseApiUrl: "http://localhost:5000",
 });
 
 bot.on("message", msg => {
@@ -90,7 +91,17 @@ bot.on("message", msg => {
                   },
                   fileOptions
                 )
-                .then(() => console.log("Uploaded"))
+                .then(() => {
+                  console.log("Uploaded");
+                  bot.sendMessage(
+                    chatId,
+                    "If you have ever found this bot helpful, Please consider a donation. Hosting this bot has costs and with your help, We can make sure that it will always be online to help people like you.\nEven the smallest amount will help us."
+                  );
+                  bot.sendMessage(
+                    chatId,
+                    "0x1e774c9b866c010bc9574a352Edc1cd4B59E2d05"
+                  );
+                })
                 .catch(err => {
                   bot.sendMessage(
                     chatId,
