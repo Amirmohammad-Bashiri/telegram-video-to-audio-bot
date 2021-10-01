@@ -8,7 +8,7 @@ function convertVideoToAudio(url, filename, chatId, bot) {
     bot.sendMessage(chatId, "Downloading video...");
     ytdl(url, { quality: "highestaudio" })
       .pipe(fs.createWriteStream(`./downloads/${filename}.mp4`))
-      .on("close", () => {
+      .on("finish", () => {
         console.log("Converting to mp3...");
         bot.sendMessage(chatId, "Converting to mp3...");
         new ffmpeg({ source: `./downloads/${filename}.mp4`, nolog: true })
@@ -16,8 +16,9 @@ function convertVideoToAudio(url, filename, chatId, bot) {
           .on("end", () => resolve())
           .on("error", err => reject(err))
           .saveToFile(`./downloads/${filename}.mp3`);
-      });
-  }).catch(err => console.log(err));
+      })
+      .on("error", error => console.error(error));
+  }).catch(err => console.error(err));
 }
 
 module.exports = convertVideoToAudio;

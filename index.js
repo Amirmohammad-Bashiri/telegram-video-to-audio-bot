@@ -9,6 +9,7 @@ const getVideoDetails = require("./getVideoDetails");
 const convertVideoToAudio = require("./convertVideoToAudio");
 const removeSpecialChars = require("./utils/removeSpecialChars");
 const isValidUrl = require("./utils/isValidUrl");
+const checkFileSize = require("./utils/checkFileSize");
 const userDetailsLogger = require("./utils/userDetailsLogger");
 // Global constants
 dotenv.config({ path: "./config.env" });
@@ -25,12 +26,11 @@ const token = process.env.BOT_TOKEN;
 
 const bot = new TelegramBot(token, {
   polling: true,
-  baseApiUrl: "http://localhost:5000",
 });
 
 bot.on("message", msg => {
   const chatId = msg.chat.id;
-  runDB(chatId);
+
   let url;
   const fileOptions = {
     contentType: "audio/mpeg",
@@ -38,8 +38,12 @@ bot.on("message", msg => {
 
   try {
     if (msg.text !== "/start") {
+      runDB(chatId);
+
       userDetailsLogger(bot, chatId);
+
       url = new URL(msg.text);
+
       if (!isValidUrl(msg.text)) throw new Error();
 
       bot.sendMessage(chatId, "Getting video info...");
@@ -67,6 +71,13 @@ bot.on("message", msg => {
 
           convertVideoToAudio(data.url, cleanedFilename, chatId, bot)
             .then(() => {
+              if (!checkFileSize(mp3FilePath)) {
+                bot.sendMessage(chatId, "File is too large.");
+                fs.unlinkSync(mp3FilePath);
+                fs.unlinkSync(mp4FilePath);
+                fs.unlinkSync(thumbFilePath);
+                return;
+              }
               console.log("Uploading...");
               bot.sendMessage(chatId, "Uploading...");
               bot
@@ -74,8 +85,7 @@ bot.on("message", msg => {
                   chatId,
                   mp3FilePath,
                   {
-                    caption:
-                      "\nID: @yt_video_to_audio_bot\nSoundcloud Downloader: @soundcloud_download_bot",
+                    caption: "\nID: @yt_video_to_audio_bot",
                     thumb: thumbFilePath,
                   },
                   fileOptions
